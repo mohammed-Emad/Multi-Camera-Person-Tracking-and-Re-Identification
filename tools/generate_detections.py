@@ -6,8 +6,8 @@ import numpy as np
 import cv2
 import tensorflow as tf
 import os
-os.environ['CUDA_LAUNCH_BLOCKING'] = "0,1"
-os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
+os.environ['CUDA_LAUNCH_BLOCKING'] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 from facenet_pytorch import InceptionResnetV1
 from PIL import Image

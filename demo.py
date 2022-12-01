@@ -5,8 +5,8 @@ from __future__ import division, print_function, absolute_import
 
 import os
 import os
-os.environ['CUDA_LAUNCH_BLOCKING'] = "0,1"
-os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
+os.environ['CUDA_LAUNCH_BLOCKING'] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 import tensorflow as tf
 from keras.backend import set_session as KTF
@@ -77,7 +77,6 @@ COLORS = np.random.uniform(0, 255, size=(len(coco_names), 3))
 def get_outputs(image, model, threshold):
     with torch.no_grad():
         # forward pass of the image through the modle
-        model = model.cuda()
         outputs = model(image)
     
     # get all the scores
