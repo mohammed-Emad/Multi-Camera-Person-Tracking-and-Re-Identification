@@ -95,7 +95,7 @@ def crop_mask_tf(imager, masks,boxes,labels, sizeim):
                 height = max(x11)
                 crop_img = res[y:height, x:width]
                 #crop_img = netproc(cv2.resize(crop_img, sizeim), 0)
-                phlist.append(cv2.resize(crop_img, sizeim))
+                phlist.append(cv2.resize(crop_img, tuple(sizeim[::-1])))
                 boxx = [x,y,int(width-x), int(height-y)]
                 boxes2.append(boxx)
             except:
