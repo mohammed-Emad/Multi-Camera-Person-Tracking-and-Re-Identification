@@ -41,6 +41,8 @@ class REID:
                 img = img.cuda()
             features = self._extract_features(img)
             features = features.data.cpu()  # tensor shape=1x2048
+            print(features.shape)
+            print(features)
             f.append(features)
         f = torch.cat(f, 0)
         return f
