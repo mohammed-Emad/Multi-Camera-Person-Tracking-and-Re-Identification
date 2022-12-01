@@ -186,7 +186,7 @@ def create_box_encoder00(model_filename, input_name="images",
                        output_name="features", batch_size=32):
 
     def encoder(image, masks,boxes,labels):
-        image_patches,boxes2 = crop_mask(image, masks,boxes,labels)
+        image_patches,boxes2 = crop_mask(image, masks,boxes,labels, (160,160))
         if len(image_patches) > 0:
            sma = netEM(image_patches)
         else:
@@ -204,7 +204,7 @@ def create_box_encoder(model_filename, input_name="images",
         for box in boxes:
             #patch = extract_image_patch(image, box, image_shape[:2])
             #image_patches,boxes2 = crop_mask(image, masks,boxes,labels)
-            image_patches,boxes2 = crop_mask(image, masks,boxes,labels, image_shape[:2])
+            image_patches,boxes2 = crop_mask_tf(image, masks,boxes,labels, image_shape[:2])
             image_patches.append(patch)
         image_patches = np.asarray(image_patches)
         return image_encoder(image_patches, batch_size), boxes2
