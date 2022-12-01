@@ -391,7 +391,7 @@ def main(yolo):
 
     # Generate a single video with complete MOT/ReID
     if args.all:
-        loadvideo = LoadVideo(combined_path, img_size=(1424, 805))
+        loadvideo = LoadVideo(combined_path)
         video_capture, frame_rate, w, h = loadvideo.get_VideoLabels()
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
         complete_path = out_dir+'/Complete'+'.avi'
