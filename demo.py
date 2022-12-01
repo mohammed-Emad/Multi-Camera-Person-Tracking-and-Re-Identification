@@ -137,7 +137,7 @@ def rescale_frameA(frame_input, percent=75):
     return width, height
 
 class LoadVideo:  # for inference
-    def __init__(self, path, img_size=(640, 360)):
+    def __init__(self, path, img_size=(720, 416)):
         if not os.path.isfile(path):
             raise FileExistsError
 
