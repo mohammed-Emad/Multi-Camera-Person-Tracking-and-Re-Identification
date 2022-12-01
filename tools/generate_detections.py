@@ -50,7 +50,7 @@ alpha = 1
 beta = 0.6 # transparency for the segmentation map
 gamma = 0 # scalar added to each sum
 #[topleft_x, topleft_y, w, h]
-def crop_mask(imager, masks,boxes,labels):
+def crop_mask(imager, masks,boxes,labels, sizeim):
     phlist = []
     boxes2 = []
     for i in range(len(masks)):
@@ -68,7 +68,33 @@ def crop_mask(imager, masks,boxes,labels):
                 width = max(x00)
                 height = max(x11)
                 crop_img = res[y:height, x:width]
-                crop_img = netproc(cv2.resize(crop_img, (160,160)), 0)
+                crop_img = netproc(cv2.resize(crop_img, sizeim), 0)
+                phlist.append(crop_img)
+                boxx = [x,y,int(width-x), int(height-y)]
+                boxes2.append(boxx)
+            except:
+                print(masks[i].shape)
+    return phlist ,np.array(boxes2)
+
+def crop_mask_tf(imager, masks,boxes,labels, sizeim):
+    phlist = []
+    boxes2 = []
+    for i in range(len(masks)):
+        if labels[i]=='person':
+            red_map = np.zeros_like(masks[i]).astype(np.uint8)
+            try:
+                # apply a randon color mask to each object
+                red_map[masks[i] == 1] = 255
+                
+                res = cv2.bitwise_and(imager,imager, mask= red_map)
+                x00 = (boxes[i][0][0], boxes[i][1][0])
+                x11 = (boxes[i][0][1], boxes[i][1][1])
+                x = min(x00)
+                y = min(x11)
+                width = max(x00)
+                height = max(x11)
+                crop_img = res[y:height, x:width]
+                #crop_img = netproc(cv2.resize(crop_img, sizeim), 0)
                 phlist.append(crop_img)
                 boxx = [x,y,int(width-x), int(height-y)]
                 boxes2.append(boxx)
@@ -176,14 +202,12 @@ def create_box_encoder(model_filename, input_name="images",
     def encoder(image, masks,boxes,labels):
         image_patches = []
         for box in boxes:
-            patch = extract_image_patch(image, box, image_shape[:2])
-            if patch is None:
-                print("WARNING: Failed to extract image patch: %s." % str(box))
-                patch = np.random.uniform(
-                    0., 255., image_shape).astype(np.uint8)
+            #patch = extract_image_patch(image, box, image_shape[:2])
+            #image_patches,boxes2 = crop_mask(image, masks,boxes,labels)
+            image_patches,boxes2 = crop_mask(image, masks,boxes,labels, image_shape[:2])
             image_patches.append(patch)
         image_patches = np.asarray(image_patches)
-        return image_encoder(image_patches, batch_size), boxes
+        return image_encoder(image_patches, batch_size), boxes2
 
     return encoder
 
