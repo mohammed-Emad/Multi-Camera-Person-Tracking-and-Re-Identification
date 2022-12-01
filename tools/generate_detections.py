@@ -205,7 +205,6 @@ def create_box_encoder(model_filename, input_name="images",
             #patch = extract_image_patch(image, box, image_shape[:2])
             #image_patches,boxes2 = crop_mask(image, masks,boxes,labels)
             image_patches,boxes2 = crop_mask_tf(image, masks,boxes,labels, image_shape[:2])
-            image_patches.append(patch)
         image_patches = np.asarray(image_patches)
         return image_encoder(image_patches, batch_size), boxes2
 
