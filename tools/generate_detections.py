@@ -156,7 +156,7 @@ class ImageEncoder(object):
 
 
 #no
-def create_box_encoder(model_filename, input_name="images",
+def create_box_encoder00(model_filename, input_name="images",
                        output_name="features", batch_size=32):
 
     def encoder(image, masks,boxes,labels):
@@ -167,6 +167,26 @@ def create_box_encoder(model_filename, input_name="images",
            sma = []
         return sma, boxes2
     return encoder
+
+def create_box_encoder(model_filename, input_name="images",
+                       output_name="features", batch_size=32):
+    image_encoder = ImageEncoder(model_filename, input_name, output_name)
+    image_shape = image_encoder.image_shape
+
+    def encoder(image, masks,boxes,labels):
+        image_patches = []
+        for box in boxes:
+            patch = extract_image_patch(image, box, image_shape[:2])
+            if patch is None:
+                print("WARNING: Failed to extract image patch: %s." % str(box))
+                patch = np.random.uniform(
+                    0., 255., image_shape).astype(np.uint8)
+            image_patches.append(patch)
+        image_patches = np.asarray(image_patches)
+        return image_encoder(image_patches, batch_size), boxes
+
+    return encoder
+
 
 def generate_detections(encoder, mot_dir, output_dir, detection_dir=None):
     """Generate detections with features.
