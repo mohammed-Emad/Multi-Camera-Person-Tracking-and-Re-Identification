@@ -4,6 +4,10 @@
 from __future__ import division, print_function, absolute_import
 
 import os
+import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = "0,1"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
+
 import tensorflow as tf
 from keras.backend import set_session as KTF
 
