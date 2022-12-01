@@ -236,7 +236,7 @@ def create_box_encoder(model_filename, input_name="images",
 
     def encoder(image, masks,boxes,labels):
         image_patches,boxes2 = crop_mask_torch(image, masks,boxes,labels, (110,110))
-        return image_patches
+        return image_patches, boxes2
 
     return encoder
 
