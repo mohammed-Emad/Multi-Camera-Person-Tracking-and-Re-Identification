@@ -15,7 +15,7 @@ class REID:
             pretrained=True,
             use_gpu=self.use_gpu
         )
-        torchreid.utils.load_pretrained_weights(self.model, 'model_data/models/model.pth')
+        torchreid.utils.load_pretrained_weights(self.model, 'model_data/models/model.pth.tar-60')
         if self.use_gpu:
             self.model = self.model.cuda()
         _, self.transform_te = build_transforms(
