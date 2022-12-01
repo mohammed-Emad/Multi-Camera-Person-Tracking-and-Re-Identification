@@ -201,6 +201,7 @@ def create_box_encoder(model_filename, input_name="images",
 
     def encoder(image, masks,boxes,labels):
         image_patches = []
+        boxes2 = []
         for box in boxes:
             #patch = extract_image_patch(image, box, image_shape[:2])
             #image_patches,boxes2 = crop_mask(image, masks,boxes,labels)
