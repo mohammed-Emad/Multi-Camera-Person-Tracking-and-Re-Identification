@@ -66,7 +66,7 @@ def crop_mask(imager, masks,boxes,labels):
                 width = max(x00)
                 height = max(x11)
                 crop_img = res[y:height, x:width]
-                crop_img = netproc(cv2.resize(crop_img, (160,160)), 1)
+                crop_img = netproc(cv2.resize(crop_img, (160,160)), 0)
                 phlist.append(crop_img)
                 boxx = [x,y,int(width-x), int(height-y)]
                 boxes2.append(boxx)
