@@ -179,6 +179,66 @@ class ImageEncoder(object):
 # def encoder : return nx128 array
 # n means people nums of this frame
 
+import torch
+
+from pytorch_sift import SIFTNet 
+
+SIFT = SIFTNet(patch_size = 110)
+SIFT.eval() 
+
+
+def getpy(img):
+    img = cv2.resize(img, (110,110))
+    img =  cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    patches = np.ndarray((1, 1, 110, 110), dtype=np.float32)
+    patches[0,0,:,:] = img
+    with torch.no_grad():
+        torch_patches = torch.from_numpy(patches)
+        res = SIFT(torch_patches)
+        sift = np.round(512. * res.data.cpu().numpy()).astype(np.int32)
+    return sift
+
+
+def crop_mask_torch(imager, masks,boxes,labels, sizeim):
+    phlist = []
+    boxes2 = []
+    for i in range(len(masks)):
+        if labels[i]=='person':
+            red_map = np.zeros_like(masks[i]).astype(np.uint8)
+            try:
+                # apply a randon color mask to each object
+                red_map[masks[i] == 1] = 255
+                
+                res = cv2.bitwise_and(imager,imager, mask= red_map)
+                x00 = (boxes[i][0][0], boxes[i][1][0])
+                x11 = (boxes[i][0][1], boxes[i][1][1])
+                x = min(x00)
+                y = min(x11)
+                width = max(x00)
+                height = max(x11)
+                crop_img = res[y:height, x:width]
+                patch = getpy(cv2.resize(crop_img, tuple(sizeim[::-1])))
+                phlist.append(patch)
+
+                boxx = [x,y,int(width-x), int(height-y)]
+                boxes2.append(boxx)
+            except:
+                print(masks[i].shape)
+    out = np.zeros((len(boxes), 128), np.float32)
+    for ii in range(len(boxes2)):
+        out[ii] = phlist[ii]
+    return out ,np.array(boxes2)
+
+
+#sift
+def create_box_encoder(model_filename, input_name="images",
+                       output_name="features", batch_size=32):
+
+    def encoder(image, masks,boxes,labels):
+        image_patches,boxes2 = crop_mask_torch(image, masks,boxes,labels, (110,110))
+        return image_patches
+
+    return encoder
 
 
 #no
@@ -194,7 +254,7 @@ def create_box_encoder00(model_filename, input_name="images",
         return sma, boxes2
     return encoder
 
-def create_box_encoder(model_filename, input_name="images",
+def create_box_encoder01(model_filename, input_name="images",
                        output_name="features", batch_size=32):
     image_encoder = ImageEncoder(model_filename, input_name, output_name)
     image_shape = image_encoder.image_shape
