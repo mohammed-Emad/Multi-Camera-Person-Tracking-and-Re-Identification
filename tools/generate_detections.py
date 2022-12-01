@@ -6,9 +6,8 @@ import numpy as np
 import cv2
 import tensorflow as tf
 
-#tf.compat.v1.disable_eager_execution()
 
-from facenet_pytorch import MTCNN, InceptionResnetV1
+from facenet_pytorch import InceptionResnetV1
 from PIL import Image
 import cv2, torch
 from torchvision.transforms import functional as F

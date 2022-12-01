@@ -25,8 +25,6 @@ from PIL import Image
 from collections import Counter
 import operator
 
-#from yolo_v3 import YOLO3
-#from yolo_v4 import YOLO4
 from deep_sort import preprocessing
 from deep_sort import nn_matching
 from deep_sort.detection import Detection
@@ -135,7 +133,7 @@ def rescale_frameA(frame_input, percent=75):
     return width, height
 
 class LoadVideo:  # for inference
-    def __init__(self, path, img_size=(1424, 805)):
+    def __init__(self, path, img_size=(640, 360)):
         if not os.path.isfile(path):
             raise FileExistsError
 
@@ -144,7 +142,7 @@ class LoadVideo:  # for inference
         self.vw = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.vh = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.vn = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.vw, self.vh = rescale_frameA([self.vw, self.vh], percent=53)
+        #self.vw, self.vh = rescale_frameA([self.vw, self.vh], percent=53)
         self.width = img_size[0]
         self.height = img_size[1]
         self.count = 0
@@ -203,7 +201,7 @@ def main(yolo):
 
     all_frames = []
     for video in args.videos:
-        loadvideo = LoadVideo(video, img_size=(1424, 805))
+        loadvideo = LoadVideo(video)
         video_capture, frame_rate, w, h = loadvideo.get_VideoLabels()
         while True:
             ret, frame = video_capture.read()
@@ -212,7 +210,7 @@ def main(yolo):
             if ret is not True:
                 video_capture.release()
                 break
-            frame = rescale_frame(frame.copy(), 53)
+            #frame = rescale_frame(frame.copy(), 53)
             #print(frame.shape)
             all_frames.append(frame)
     print(frame_rate, (w, h))
@@ -403,7 +401,7 @@ def main(yolo):
             frame2 = all_frames[frame]
             video_capture.set(cv2.CAP_PROP_POS_FRAMES, frame)
             _, frame2 = video_capture.read()
-            frame2 = rescale_frame(frame2.copy(), 53)
+            #frame2 = rescale_frame(frame2.copy(), 53)
             for idx in final_fuse_id:
                 for i in final_fuse_id[idx]:
                     for f in track_cnt[i]:
