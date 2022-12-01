@@ -77,7 +77,7 @@ COLORS = np.random.uniform(0, 255, size=(len(coco_names), 3))
 def get_outputs(image, model, threshold):
     with torch.no_grad():
         # forward pass of the image through the modle
-        outputs = model(image)
+        outputs = model(image.cuda())
     
     # get all the scores
     scores = list(outputs[0]['scores'].detach().cpu().numpy())
