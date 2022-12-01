@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import
 
 import os
 import tensorflow as tf
-import keras.backend.tensorflow_backend as KTF
+from keras.backend import set_session as KTF
 
 from timeit import time
 import warnings
@@ -25,8 +25,8 @@ from PIL import Image
 from collections import Counter
 import operator
 
-from yolo_v3 import YOLO3
-from yolo_v4 import YOLO4
+#from yolo_v3 import YOLO3
+#from yolo_v4 import YOLO4
 from deep_sort import preprocessing
 from deep_sort import nn_matching
 from deep_sort.detection import Detection
@@ -37,15 +37,105 @@ from deep_sort.detection import Detection as ddet
 from reid import REID
 import copy
 
+#@title mask r-cnn
+import cv2
+import numpy as np
+import random
+import torch
+import torch
+import torchvision
+import cv2
+import argparse
+from PIL import Image
+
+from torchvision.transforms import transforms as transforms
+
+
+
+
+coco_names = [
+    '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
+    'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
+    'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+    'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella', 'N/A', 'N/A',
+    'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
+    'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
+    'bottle', 'N/A', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
+    'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
+    'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'N/A', 'dining table',
+    'N/A', 'N/A', 'toilet', 'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
+    'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book',
+    'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
+]
+
+
+COLORS = np.random.uniform(0, 255, size=(len(coco_names), 3))
+
+
+def get_outputs(image, model, threshold):
+    with torch.no_grad():
+        # forward pass of the image through the modle
+        outputs = model(image)
+    
+    # get all the scores
+    scores = list(outputs[0]['scores'].detach().cpu().numpy())
+    # index of those scores which are above a certain threshold
+    thresholded_preds_inidices = [scores.index(i) for i in scores if i > threshold]
+    thresholded_preds_count = len(thresholded_preds_inidices)
+    # get the masks
+    masks = (outputs[0]['masks']>0.5).squeeze().detach().cpu().numpy()
+    # discard masks for objects which are below threshold
+    masks = masks[:thresholded_preds_count]
+    # get the bounding boxes, in (x1, y1), (x2, y2) format
+    boxes = [[(int(i[0]), int(i[1])), (int(i[2]), int(i[3]))]  for i in outputs[0]['boxes'].detach().cpu()]
+    # discard bounding boxes below threshold value
+    boxes = boxes[:thresholded_preds_count]
+    # get the classes labels
+    labels = [coco_names[i] for i in outputs[0]['labels']]
+    return masks, boxes, labels
+
+def draw_segmentation_map(image, masks, boxes, labels):
+    alpha = 1 
+    beta = 0.6 # transparency for the segmentation map
+    gamma = 0 # scalar added to each sum
+    for i in range(len(masks)):
+        red_map = np.zeros_like(masks[i]).astype(np.uint8)
+        green_map = np.zeros_like(masks[i]).astype(np.uint8)
+        blue_map = np.zeros_like(masks[i]).astype(np.uint8)
+        # apply a randon color mask to each object
+        color = COLORS[random.randrange(0, len(COLORS))]
+        red_map[masks[i] == 1], green_map[masks[i] == 1], blue_map[masks[i] == 1]  = color
+        # combine all the masks into a single image
+        segmentation_map = np.stack([red_map, green_map, blue_map], axis=2)
+        #convert the original PIL image into NumPy format
+        image = np.array(image)
+        # convert from RGN to OpenCV BGR format
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        # apply mask on the image
+        cv2.addWeighted(image, alpha, segmentation_map, beta, gamma, image)
+        # draw the bounding boxes around the objects
+        cv2.rectangle(image, boxes[i][0], boxes[i][1], color=color, 
+                      thickness=2)
+        # put the label text above the objects
+        cv2.putText(image , labels[i], (boxes[i][0][0], boxes[i][0][1]-10), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, color, 
+                    thickness=2, lineType=cv2.LINE_AA)
+    
+    return image
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--version', help='Model(yolo_v3 or yolo_v4)', default='yolo_v4')
 parser.add_argument('--videos', nargs='+', help='List of videos', required=True)
 parser.add_argument('-all', help='Combine all videos into one', default=True)
 args = parser.parse_args()  # vars(parser.parse_args())
 
+def rescale_frameA(frame_input, percent=75):
+    width = int(frame_input[0] * percent / 100)
+    height = int(frame_input[1] * percent / 100)
+    return width, height
 
 class LoadVideo:  # for inference
-    def __init__(self, path, img_size=(1088, 608)):
+    def __init__(self, path, img_size=(1424, 805)):
         if not os.path.isfile(path):
             raise FileExistsError
 
@@ -54,6 +144,7 @@ class LoadVideo:  # for inference
         self.vw = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.vh = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.vn = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.vw, self.vh = rescale_frameA([self.vw, self.vh], percent=53)
         self.width = img_size[0]
         self.height = img_size[1]
         self.count = 0
@@ -63,6 +154,12 @@ class LoadVideo:  # for inference
     def get_VideoLabels(self):
         return self.cap, self.frame_rate, self.vw, self.vh
 
+def rescale_frame(frame_input, percent=75):
+    width = int(frame_input.shape[1] * percent / 100)
+    height = int(frame_input.shape[0] * percent / 100)
+    dim = (width, height)
+    return cv2.resize(frame_input, dim, interpolation=cv2.INTER_AREA)
+
 
 def main(yolo):
     print(f'Using {yolo} model')
@@ -70,7 +167,22 @@ def main(yolo):
     max_cosine_distance = 0.2
     nn_budget = None
     nms_max_overlap = 0.4
+    threshold = 0.965
 
+    # initialize the model
+    model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True, progress=True, 
+                                                              num_classes=91)
+    # set the computation device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # load the modle on to the computation device and set to eval mode
+    model.to(device).eval()
+
+
+
+    # transform to convert the image to tensor
+    transform = transforms.Compose([
+        transforms.ToTensor()
+    ])
     # deep_sort
     model_filename = 'model_data/models/mars-small128.pb'
     encoder = gdet.create_box_encoder(model_filename, batch_size=1)  # use to get feature
@@ -91,15 +203,19 @@ def main(yolo):
 
     all_frames = []
     for video in args.videos:
-        loadvideo = LoadVideo(video)
+        loadvideo = LoadVideo(video, img_size=(1424, 805))
         video_capture, frame_rate, w, h = loadvideo.get_VideoLabels()
         while True:
             ret, frame = video_capture.read()
+            
+            #print(frame.shape)
             if ret is not True:
                 video_capture.release()
                 break
+            frame = rescale_frame(frame.copy(), 53)
+            #print(frame.shape)
             all_frames.append(frame)
-
+    print(frame_rate, (w, h))
     frame_nums = len(all_frames)
     tracking_path = out_dir + 'tracking' + '.avi'
     combined_path = out_dir + 'allVideos' + '.avi'
@@ -125,8 +241,17 @@ def main(yolo):
     ids_per_frame = []
     for frame in all_frames:
         image = Image.fromarray(frame[..., ::-1])  # bgr to rgb
-        boxs = yolo.detect_image(image)  # n * [topleft_x, topleft_y, w, h]
-        features = encoder(frame, boxs)  # n * 128
+        image0 = transform(image)
+        # add a batch dimension
+        image0 = image0.unsqueeze(0).to(device)
+        masks, boxs, labels = get_outputs(image0, model, threshold)
+        #print(len(masks.shape))
+        if len(masks.shape) >2:
+           features,boxs = encoder(frame.copy(), masks.copy(),boxs,labels)  # n * 128
+        else:
+           boxs=[]
+           print(masks.shape)
+        #print(boxs)
         detections = [Detection(bbox, 1.0, feature) for bbox, feature in zip(boxs, features)]  # length = n
         text_scale, text_thickness, line_thickness = get_FrameLabels(frame)
 
@@ -268,16 +393,17 @@ def main(yolo):
 
     # Generate a single video with complete MOT/ReID
     if args.all:
-        loadvideo = LoadVideo(combined_path)
+        loadvideo = LoadVideo(combined_path, img_size=(1424, 805))
         video_capture, frame_rate, w, h = loadvideo.get_VideoLabels()
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
         complete_path = out_dir+'/Complete'+'.avi'
         out = cv2.VideoWriter(complete_path, fourcc, frame_rate, (w, h))
-
+        
         for frame in range(len(all_frames)):
             frame2 = all_frames[frame]
             video_capture.set(cv2.CAP_PROP_POS_FRAMES, frame)
             _, frame2 = video_capture.read()
+            frame2 = rescale_frame(frame2.copy(), 53)
             for idx in final_fuse_id:
                 for i in final_fuse_id[idx]:
                     for f in track_cnt[i]:
@@ -289,7 +415,6 @@ def main(yolo):
         out.release()
         video_capture.release()
 
-    os.remove(combined_path)
     print('\nWriting videos took {} seconds'.format(int(time.time() - t2)))
     print('Final video at {}'.format(complete_path))
     print('Total: {} seconds'.format(int(time.time() - t1)))
@@ -332,4 +457,4 @@ def get_color(idx):
 if __name__ == '__main__':
     gpu_options = tf.compat.v1.GPUOptions(per_process_gpu_memory_fraction=0.3)
     sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(gpu_options=gpu_options))
-    main(yolo=YOLO3() if args.version == 'v3' else YOLO4())
+    main('no')

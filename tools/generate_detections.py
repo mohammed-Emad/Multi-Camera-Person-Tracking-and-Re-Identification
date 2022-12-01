@@ -6,6 +6,31 @@ import numpy as np
 import cv2
 import tensorflow as tf
 
+#tf.compat.v1.disable_eager_execution()
+
+from facenet_pytorch import MTCNN, InceptionResnetV1
+from PIL import Image
+import cv2, torch
+from torchvision.transforms import functional as F
+import numpy as np
+
+
+
+# Create an inception resnet (in eval mode):
+resnet = InceptionResnetV1(pretrained='vggface2').eval()
+
+
+def netproc(img,p=0):
+    tsimg = F.to_tensor(np.float32(img))
+    if p!=0:
+       return tsimg
+    return (tsimg - 127.5) / 128.0
+    
+def netEM(listor):
+    _im = torch.stack(listor)
+    return resnet(_im).detach().numpy()
+
+
 
 def _run_in_batches(f, data_dict, out, batch_size):
     data_len = len(out)
@@ -20,6 +45,37 @@ def _run_in_batches(f, data_dict, out, batch_size):
         batch_data_dict = {k: v[e:] for k, v in data_dict.items()}
         out[e:] = f(batch_data_dict)
 
+alpha = 1 
+beta = 0.6 # transparency for the segmentation map
+gamma = 0 # scalar added to each sum
+#[topleft_x, topleft_y, w, h]
+def crop_mask(imager, masks,boxes,labels):
+    phlist = []
+    boxes2 = []
+    for i in range(len(masks)):
+        if labels[i]=='person':
+            red_map = np.zeros_like(masks[i]).astype(np.uint8)
+            try:
+                # apply a randon color mask to each object
+                red_map[masks[i] == 1] = 255
+                # combine all the masks into a single image res[x:width, y:height]
+                #cv2.imwrite('yy.jpg',orig_image)
+                
+                res = cv2.bitwise_and(imager,imager, mask= red_map)
+                x00 = (boxes[i][0][0], boxes[i][1][0])
+                x11 = (boxes[i][0][1], boxes[i][1][1])
+                x = min(x00)
+                y = min(x11)
+                width = max(x00)
+                height = max(x11)
+                crop_img = res[y:height, x:width]
+                crop_img = netproc(cv2.resize(crop_img, (160,160)), 1)
+                phlist.append(crop_img)
+                boxx = [x,y,int(width-x), int(height-y)]
+                boxes2.append(boxx)
+            except:
+                print(masks[i].shape)
+    return phlist ,np.array(boxes2)
 
 def extract_image_patch(image, bbox, patch_shape):
     """Extract image patch from bounding box.
@@ -99,25 +155,19 @@ class ImageEncoder(object):
 # n means people nums of this frame
 
 
+
+#no
 def create_box_encoder(model_filename, input_name="images",
                        output_name="features", batch_size=32):
-    image_encoder = ImageEncoder(model_filename, input_name, output_name)
-    image_shape = image_encoder.image_shape
 
-    def encoder(image, boxes):
-        image_patches = []
-        for box in boxes:
-            patch = extract_image_patch(image, box, image_shape[:2])
-            if patch is None:
-                print("WARNING: Failed to extract image patch: %s." % str(box))
-                patch = np.random.uniform(
-                    0., 255., image_shape).astype(np.uint8)
-            image_patches.append(patch)
-        image_patches = np.asarray(image_patches)
-        return image_encoder(image_patches, batch_size)
-
+    def encoder(image, masks,boxes,labels):
+        image_patches,boxes2 = crop_mask(image, masks,boxes,labels)
+        if len(image_patches) > 0:
+           sma = netEM(image_patches)
+        else:
+           sma = []
+        return sma, boxes2
     return encoder
-
 
 def generate_detections(encoder, mot_dir, output_dir, detection_dir=None):
     """Generate detections with features.
