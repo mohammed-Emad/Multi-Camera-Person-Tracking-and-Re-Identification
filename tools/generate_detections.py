@@ -57,8 +57,6 @@ def crop_mask(imager, masks,boxes,labels):
             try:
                 # apply a randon color mask to each object
                 red_map[masks[i] == 1] = 255
-                # combine all the masks into a single image res[x:width, y:height]
-                #cv2.imwrite('yy.jpg',orig_image)
                 
                 res = cv2.bitwise_and(imager,imager, mask= red_map)
                 x00 = (boxes[i][0][0], boxes[i][1][0])
@@ -68,7 +66,7 @@ def crop_mask(imager, masks,boxes,labels):
                 width = max(x00)
                 height = max(x11)
                 crop_img = res[y:height, x:width]
-                crop_img = netproc(cv2.resize(crop_img, (64,128)), 1)
+                crop_img = netproc(cv2.resize(crop_img, (160,160)), 1)
                 phlist.append(crop_img)
                 boxx = [x,y,int(width-x), int(height-y)]
                 boxes2.append(boxx)
