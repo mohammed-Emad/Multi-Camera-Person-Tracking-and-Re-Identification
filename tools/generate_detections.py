@@ -229,9 +229,58 @@ def crop_mask_torch(imager, masks,boxes,labels, sizeim):
         out[ii] = phlist[ii]
     return out ,np.array(boxes2)
 
+sift_op = cv2.xfeatures2d.SIFT_create()
 
-#sift
+def exfea_sift(area):
+    kp, des = sift_op.detectAndCompute(area,None)
+    return des
+
+def crop_mask_siftorg(imager, masks,boxes,labels, sizeim):
+    phlist = []
+    boxes2 = []
+    for i in range(len(masks)):
+        if labels[i]=='person':
+            red_map = np.zeros_like(masks[i]).astype(np.uint8)
+            try:
+                # apply a randon color mask to each object
+                red_map[masks[i] == 1] = 255
+                
+                res = cv2.bitwise_and(imager,imager, mask= red_map)
+                x00 = (boxes[i][0][0], boxes[i][1][0])
+                x11 = (boxes[i][0][1], boxes[i][1][1])
+                x = min(x00)
+                y = min(x11)
+                width = max(x00)
+                height = max(x11)
+                crop_img = res[y:height, x:width]
+                patch = exfea_sift(cv2.resize(crop_img, tuple(sizeim[::-1])))
+                phlist.append(patch)
+
+                boxx = [x,y,int(width-x), int(height-y)]
+                boxes2.append(boxx)
+            except:
+                print(masks[i].shape)
+    out = np.zeros((len(boxes), 128), np.float32)
+    for ii in range(len(boxes2)):
+        out[ii] = phlist[ii]
+        out[ii] = out[ii] / des.max()
+    return out ,np.array(boxes2)
+
+
+     
+#Sift opencv
 def create_box_encoder(model_filename, input_name="images",
+                       output_name="features", batch_size=32):
+
+    def encoder(image, masks,boxes,labels):
+        image_patches,boxes2 = crop_mask_siftorg(image, masks,boxes,labels, (110,110))
+        return image_patches, boxes2
+
+    return encoder
+
+
+#sift torch
+def create_box_encoder0torch(model_filename, input_name="images",
                        output_name="features", batch_size=32):
 
     def encoder(image, masks,boxes,labels):

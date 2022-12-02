@@ -253,7 +253,7 @@ def main(yolo):
         else:
            boxs=[]
            print(masks.shape)
-        #print(boxs)
+
         detections = [Detection(bbox, 1.0, feature) for bbox, feature in zip(boxs, features)]  # length = n
         text_scale, text_thickness, line_thickness = get_FrameLabels(frame)
 
@@ -365,7 +365,7 @@ def main(yolo):
                         images_by_id[combined_id] += images_by_id[nid]
                         final_fuse_id[combined_id].append(nid)
                     else:
-                        final_fuse_id[nid] = [nid]
+                        final_fuse_id[nid] = [nid] 
     print('Final ids and their sub-ids:', final_fuse_id)
     print('MOT took {} seconds'.format(int(time.time() - t1)))
     t2 = time.time()
