@@ -245,7 +245,7 @@ def crop_mask_siftorg(imager, masks,boxes,labels, sizeim):
     for i in range(len(masks)):
         if labels[i]=='person':
             red_map = np.zeros_like(masks[i]).astype(np.uint8)
-            try:
+            if 5==5: #try:
                 # apply a randon color mask to each object
                 red_map[masks[i] == 1] = 255
                 
@@ -268,7 +268,7 @@ def crop_mask_siftorg(imager, masks,boxes,labels, sizeim):
 
                 boxx = [x,y,int(width-x), int(height-y)]
                 boxes2.append(boxx)
-            except:
+            else: #except:
                 print(masks[i].shape)
     '''
     out = np.zeros((len(boxes), 200), np.float32)
