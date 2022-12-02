@@ -254,18 +254,19 @@ def crop_mask_siftorg(imager, masks,boxes,labels, sizeim):
                 height = max(x11)
                 crop_img = res[y:height, x:width]
                 patch = exfea_sift(cv2.resize(crop_img, tuple(sizeim[::-1])))
-                print(patch.flatten().shape)
+                #print(patch.flatten().shape)
                 phlist.append(patch)
 
                 boxx = [x,y,int(width-x), int(height-y)]
                 boxes2.append(boxx)
             except:
                 print(masks[i].shape)
-    out = np.zeros((len(boxes), 200), np.float32)
+    out = [] #np.zeros((len(boxes), 200), np.float32)
     for ii in range(len(boxes2)):
-        out[ii] = phlist[ii]
-        out[ii] = out[ii] / des.max()
-    return out ,np.array(boxes2)
+        #out[ii] = phlist[ii]
+        out[ii] = phlist[ii] / des.max()
+    
+    return np.asarray(out) ,np.array(boxes2)
 
 
      
