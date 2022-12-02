@@ -229,10 +229,14 @@ def crop_mask_torch(imager, masks,boxes,labels, sizeim):
         out[ii] = phlist[ii]
     return out ,np.array(boxes2)
 
-sift_op = cv2.ORB_create() #cv2.xfeatures2d.SIFT_create()
+#sift_op = cv2.xfeatures2d.SIFT_create() # cv2.ORB_create()#
+
+import pysift
+
 
 def exfea_sift(area):
-    kp, des = sift_op.detectAndCompute(area,None)
+    #kp, des = sift_op.detectAndCompute(area,None)
+    kp, des = pysift.computeKeypointsAndDescriptors(area)
     return des
 
 def crop_mask_siftorg(imager, masks,boxes,labels, sizeim):
@@ -253,6 +257,7 @@ def crop_mask_siftorg(imager, masks,boxes,labels, sizeim):
                 width = max(x00)
                 height = max(x11)
                 crop_img = res[y:height, x:width]
+                crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
                 patch = exfea_sift(cv2.resize(crop_img, tuple(sizeim[::-1])))
                 #print(patch.flatten().shape)
                 phlist.append(patch)
