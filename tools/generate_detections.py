@@ -260,7 +260,7 @@ def crop_mask_siftorg(imager, masks,boxes,labels, sizeim):
                 boxes2.append(boxx)
             except:
                 print(masks[i].shape)
-    out = np.zeros((len(boxes), tuple(sizeim[::-1])), np.float32)
+    out = np.zeros((len(boxes), sizeim[0],sizeim[1]), np.float32)
     for ii in range(len(boxes2)):
         out[ii] = phlist[ii]
         out[ii] = out[ii] / des.max()
