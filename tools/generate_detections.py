@@ -254,6 +254,7 @@ def crop_mask_siftorg(imager, masks,boxes,labels, sizeim):
                 height = max(x11)
                 crop_img = res[y:height, x:width]
                 patch = exfea_sift(cv2.resize(crop_img, tuple(sizeim[::-1])))
+                print(patch.flatten().shape)
                 phlist.append(patch)
 
                 boxx = [x,y,int(width-x), int(height-y)]
