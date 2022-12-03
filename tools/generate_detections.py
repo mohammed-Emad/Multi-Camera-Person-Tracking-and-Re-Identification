@@ -229,7 +229,7 @@ def crop_mask_torch(imager, masks,boxes,labels, sizeim):
         out[ii] = phlist[ii]
     return out ,np.array(boxes2)
 
-sift_op = cv2.ORB_create() #cv2.xfeatures2d.SIFT_create() # cv2.ORB_create()#
+sift_op = cv2.xfeatures2d.SIFT_create() # cv2.ORB_create()#
 
 #import pysift
 
