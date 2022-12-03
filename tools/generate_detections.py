@@ -284,7 +284,7 @@ def create_box_encoder(model_filename, input_name="images",
                        output_name="features", batch_size=32):
 
     def encoder(image, masks,boxes,labels):
-        image_patches,boxes2 = crop_mask_siftorg(image, masks,boxes,labels, (64,128))
+        image_patches,boxes2 = crop_mask_siftorg(image, masks,boxes,labels, (64,64))
         return image_patches, boxes2
 
     return encoder
