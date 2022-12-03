@@ -257,7 +257,7 @@ def crop_mask_siftorg(imager, masks,boxes,labels, sizeim):
                 width = max(x00)
                 height = max(x11)
                 crop_img = res[y:height, x:width]
-                crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
+                #crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
                 #patch = exfea_sift(crop_img)
                 patch = exfea_sift(cv2.resize(crop_img, tuple(sizeim[::-1])))
 
@@ -284,7 +284,7 @@ def create_box_encoder(model_filename, input_name="images",
                        output_name="features", batch_size=32):
 
     def encoder(image, masks,boxes,labels):
-        image_patches,boxes2 = crop_mask_siftorg(image, masks,boxes,labels, (64,64))
+        image_patches,boxes2 = crop_mask_siftorg(image, masks,boxes,labels, (128,128))
         return image_patches, boxes2
 
     return encoder
