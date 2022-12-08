@@ -29,7 +29,7 @@ class Encoder(nn.Module):
     
     def __init__(self):
         super().__init__()
-        self.backbone_beit = timm.create_model('beit_base_patch16_224_in22k', pretrained=True, num_classes=0)
+        self.backbone_beit = timm.create_model('beit_base_patch16_224_in22k', pretrained=True, num_classes=0).to('cuda')
         self.avgpool1d = nn.AdaptiveAvgPool1d(EMB_SIZE)
         
     def forward(self, x):
