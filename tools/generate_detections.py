@@ -63,7 +63,7 @@ def get_load2(img):
 
 def get_embedding2(imglist):
     with torch.no_grad():
-        embedding = model(torch.stack(imglist).cuda()).cuda().data.numpy()
+        embedding = model(torch.stack(imglist).cuda()).cpu().data.numpy()
     return embedding
 
 
