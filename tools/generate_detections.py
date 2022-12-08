@@ -30,6 +30,8 @@ class Encoder(nn.Module):
     def __init__(self):
         super().__init__()
         self.backbone_beit = timm.create_model('beit_base_patch16_224_in22k', pretrained=True, num_classes=0).to('cuda')
+        if torch.cuda.is_available():
+            self.backbone_beit.cuda()
         self.avgpool1d = nn.AdaptiveAvgPool1d(EMB_SIZE)
         
     def forward(self, x):
@@ -61,7 +63,7 @@ def get_load2(img):
 
 def get_embedding2(imglist):
     with torch.no_grad():
-        embedding = model(torch.stack(imglist)).cpu().data.numpy()
+        embedding = model(torch.stack(imglist).cuda()).cuda().data.numpy()
     return embedding
 
 
