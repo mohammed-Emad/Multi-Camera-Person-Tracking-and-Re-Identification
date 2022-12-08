@@ -53,6 +53,16 @@ def get_embedding(img):
         embedding = torch.flatten(model(input_batch)[0]).cpu().data.numpy()
     return embedding
 
+def get_load2(img):
+    img = Image.fromarray(img[..., ::-1]) 
+    convert_to_tensor = transforms.Compose([transforms.PILToTensor()])
+    input_tensor = convert_to_tensor(img)
+    return input_tensor
+
+def get_embedding2(imglist):
+    with torch.no_grad():
+        embedding = model(torch.stack(imglist)).cpu().data.numpy()
+    return embedding
 
 
 
@@ -335,7 +345,7 @@ def crop_mask_g(imager, masks,boxes,labels, sizeim):
                 width = max(x00)
                 height = max(x11)
                 crop_img = res[y:height, x:width]
-                crop_img = get_embedding(cv2.resize(crop_img, sizeim))
+                crop_img = get_load2(cv2.resize(crop_img, sizeim))
                 phlist.append(crop_img)
                 boxx = [x,y,int(width-x), int(height-y)]
                 boxes2.append(boxx)
@@ -350,7 +360,7 @@ def create_box_encoder(model_filename, input_name="images",
     def encoder(image, masks,boxes,labels):
         image_patches,boxes2 = crop_mask_g(image, masks,boxes,labels, (224,224))
         if len(image_patches) > 0:
-           sma = image_patches
+           sma = get_embedding2(image_patches)
         else:
            sma = []
         return sma, boxes2
