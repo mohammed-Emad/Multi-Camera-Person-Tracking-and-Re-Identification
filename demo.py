@@ -242,6 +242,7 @@ def main(yolo):
     images_by_id = dict()
     ids_per_frame = []
     for frame in all_frames:
+        print("frame",frame.shape)
         image = Image.fromarray(frame[..., ::-1])  # bgr to rgb
         image0 = transform(image)
         # add a batch dimension

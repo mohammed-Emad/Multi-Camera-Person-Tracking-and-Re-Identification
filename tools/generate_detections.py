@@ -278,9 +278,8 @@ def crop_mask_siftorg(imager, masks,boxes,labels, sizeim):
     return out ,np.array(boxes2)
 
 
-     
 #Sift opencv
-def create_box_encoder(model_filename, input_name="images",
+def create_box_encode0r(model_filename, input_name="images",
                        output_name="features", batch_size=32):
 
     def encoder(image, masks,boxes,labels):
@@ -302,7 +301,7 @@ def create_box_encoder0torch(model_filename, input_name="images",
 
 
 #no faceNet
-def create_box_encode0r(model_filename, input_name="images",
+def create_box_encoder(model_filename, input_name="images",
                        output_name="features", batch_size=32):
 
     def encoder(image, masks,boxes,labels):
