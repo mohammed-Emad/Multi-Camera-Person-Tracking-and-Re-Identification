@@ -15,6 +15,46 @@ import cv2, torch
 from torchvision.transforms import functional as F
 import numpy as np
 
+import timm
+import torch.nn as nn
+import torch
+from PIL import Image
+import requests
+from torchvision import transforms
+from torchvision.transforms.functional import resize, normalize
+
+EMB_SIZE = 1024
+
+class Encoder(nn.Module):
+    
+    def __init__(self):
+        super().__init__()
+        self.backbone_beit = timm.create_model('beit_base_patch16_224_in22k', pretrained=True, num_classes=0)
+        self.avgpool1d = nn.AdaptiveAvgPool1d(EMB_SIZE)
+        
+    def forward(self, x):
+        x = resize(x, size=[224, 224])
+        x = x / 255.0
+        x = x.type(torch.float32)
+        outputs = self.backbone_beit(x)
+        embedding = self.avgpool1d(outputs)
+        
+        return embedding
+    
+model = Encoder()
+model.eval()
+
+def get_embedding(img):
+    img = Image.fromarray(img[..., ::-1]) 
+    convert_to_tensor = transforms.Compose([transforms.PILToTensor()])
+    input_tensor = convert_to_tensor(img)
+    input_batch = input_tensor.unsqueeze(0)
+    with torch.no_grad():
+        embedding = torch.flatten(model(input_batch)[0]).cpu().data.numpy()
+    return embedding
+
+
+
 
 
 # Create an inception resnet (in eval mode):
@@ -277,6 +317,46 @@ def crop_mask_siftorg(imager, masks,boxes,labels, sizeim):
     out=np.vstack(phlist)
     return out ,np.array(boxes2)
 
+def crop_mask_g(imager, masks,boxes,labels, sizeim):
+    phlist = []
+    boxes2 = []
+    for i in range(len(masks)):
+        if labels[i]=='person':
+            red_map = np.zeros_like(masks[i]).astype(np.uint8)
+            try:
+                # apply a randon color mask to each object
+                red_map[masks[i] == 1] = 255
+                
+                res = cv2.bitwise_and(imager,imager, mask= red_map)
+                x00 = (boxes[i][0][0], boxes[i][1][0])
+                x11 = (boxes[i][0][1], boxes[i][1][1])
+                x = min(x00)
+                y = min(x11)
+                width = max(x00)
+                height = max(x11)
+                crop_img = res[y:height, x:width]
+                crop_img = get_embedding(cv2.resize(crop_img, sizeim))
+                phlist.append(crop_img)
+                boxx = [x,y,int(width-x), int(height-y)]
+                boxes2.append(boxx)
+            except:
+                print(masks[i].shape)
+    return phlist ,np.array(boxes2)
+
+
+def create_box_encoder(model_filename, input_name="images",
+                       output_name="features", batch_size=32):
+
+    def encoder(image, masks,boxes,labels):
+        image_patches,boxes2 = crop_mask_g(image, masks,boxes,labels, (224,224))
+        if len(image_patches) > 0:
+           sma = image_patches
+        else:
+           sma = []
+        return sma, boxes2
+    return encoder
+
+
 
 #Sift opencv
 def create_box_encode0r(model_filename, input_name="images",
@@ -301,7 +381,7 @@ def create_box_encoder0torch(model_filename, input_name="images",
 
 
 #no faceNet
-def create_box_encoder(model_filename, input_name="images",
+def create_box_encode1r(model_filename, input_name="images",
                        output_name="features", batch_size=32):
 
     def encoder(image, masks,boxes,labels):
