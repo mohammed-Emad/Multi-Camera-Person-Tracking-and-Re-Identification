@@ -15,6 +15,10 @@ import cv2, torch
 from torchvision.transforms import functional as F
 import numpy as np
 
+from torchpose import model
+from torchpose import util
+from torchpose.body import Body
+from torchpose.hand import Hand
 import timm
 import torch.nn as nn
 import torch
@@ -24,6 +28,8 @@ from torchvision import transforms
 from torchvision.transforms.functional import resize, normalize
 
 EMB_SIZE = 1024
+body_estimation = Body('model/body_pose_model.pth')
+
 
 class Encoder(nn.Module):
     
@@ -347,6 +353,9 @@ def crop_mask_g(imager, masks,boxes,labels, sizeim):
                 width = max(x00)
                 height = max(x11)
                 crop_img = res[y:height, x:width]
+                candidate, subset = body_estimation(crop_img)
+                if len(candidate) <=8:
+                    continue
                 crop_img = get_load2(cv2.resize(crop_img, sizeim))
                 phlist.append(crop_img)
                 boxx = [x,y,int(width-x), int(height-y)]
