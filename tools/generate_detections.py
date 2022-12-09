@@ -81,7 +81,7 @@ def draw_bodypose3(canvas, candidate, subset):
             
             polygon = cv2.ellipse2Poly((int(mY), int(mX)), (int(length / 2), stickwidth), int(angle), 0, 360, 1)
 
-            if i in [0, 14,15,16,17]:
+            if i in [0,3,5,12,14,15,16,17]:
                try:
                   sr = np.concatenate((sr,polygon))
                except:
