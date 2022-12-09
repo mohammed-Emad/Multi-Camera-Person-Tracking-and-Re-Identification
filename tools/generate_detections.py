@@ -54,7 +54,7 @@ model.eval()
 
 def get_embeddingreid(img):
     with torch.no_grad():
-        embedding = torch.flatten(model(input_batch)[0]) #.cpu().data.numpy()
+        embedding = torch.flatten(model(img)[0]) #.cpu().data.numpy()
     return embedding
 
 def get_embedding(img):
