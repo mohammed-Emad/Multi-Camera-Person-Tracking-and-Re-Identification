@@ -26,6 +26,7 @@ from PIL import Image
 import requests
 from torchvision import transforms
 from torchvision.transforms.functional import resize, normalize
+import math
 
 EMB_SIZE = 1024
 body_estimation = Body('model/body_pose_model.pth')
@@ -51,6 +52,68 @@ class Encoder(nn.Module):#beit_base_patch16_224_in22k,  beitv2_large_patch16_224
     
 model_beit = Encoder()
 model_beit.eval()
+
+
+def cut_part(img, polygon):
+    rect = cv2.boundingRect(polygon)
+    x,y,w,h = rect
+    crop = img[int(y-(h/2)):y+h, int(x):int(x+w+(w/3))].copy()
+    return crop
+
+def draw_bodypose3(canvas, candidate, subset):
+    stickwidth = 4
+    limbSeq = [[2, 3], [2, 6], [3, 4], [4, 5], [6, 7], [7, 8], [2, 9], [9, 10], \
+               [10, 11], [2, 12], [12, 13], [13, 14], [2, 1], [1, 15], [15, 17], \
+               [1, 16], [16, 18], [3, 17], [6, 18]]
+
+    for i in range(17):
+        for n in range(len(subset)):
+            index = subset[n][np.array(limbSeq[i]) - 1]
+            if -1 in index:
+                continue
+            cur_canvas = canvas.copy()
+            Y = candidate[index.astype(int), 0]
+            X = candidate[index.astype(int), 1]
+            mX = np.mean(X)
+            mY = np.mean(Y)
+            length = ((X[0] - X[1]) ** 2 + (Y[0] - Y[1]) ** 2) ** 0.5
+            angle = math.degrees(math.atan2(X[0] - X[1], Y[0] - Y[1]))
+            
+            polygon = cv2.ellipse2Poly((int(mY), int(mX)), (int(length / 2), stickwidth), int(angle), 0, 360, 1)
+
+            if i in [0, 14,15,16,17]:
+               try:
+                  sr = np.concatenate((sr,polygon))
+               except:
+                  sr = np.array(polygon)
+            '''
+            if i in [1, 4, 5]:
+               try:
+                  sr2 = np.concatenate((sr2,polygon))
+               except:
+                  sr2 = np.array(polygon)
+            if i in [0, 2, 3, 6]:
+               try:
+                  sr3 = np.concatenate((sr3,polygon))
+               except:
+                  sr3 = np.array(polygon)
+            if i in [15, 16]:
+               print("slaaaaaaaaaaaaah")
+            '''
+    #print('IIIIIIIIIIIIIIII', i)
+    cut = []
+    if sr is not None:
+       #print(sr)
+       cut = cut_part(canvas, sr)
+    '''
+    if sr2 is not None:
+       #print(sr)
+       cut_part(canvas, sr2)
+    if sr3 is not None:
+       #print(sr)
+       cut_part(canvas, sr3)
+    '''
+    return cut
 
 def get_embeddingreid(img):
     with torch.no_grad():
@@ -133,6 +196,10 @@ def crop_mask(imager, masks,boxes,labels, sizeim):
                 width = max(x00)
                 height = max(x11)
                 crop_img = res[y:height, x:width]
+                candidate, subset = body_estimation(crop_img)
+                if len(candidate) <=2:
+                   continue
+                crop_img = draw_bodypose3(crop_img, candidate, subset)
                 crop_img = netproc(cv2.resize(crop_img, sizeim), 0)
                 phlist.append(crop_img)
                 boxx = [x,y,int(width-x), int(height-y)]
