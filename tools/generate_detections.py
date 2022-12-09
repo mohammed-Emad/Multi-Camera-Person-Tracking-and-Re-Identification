@@ -184,7 +184,7 @@ def crop_mask(imager, masks,boxes,labels, sizeim):
     for i in range(len(masks)):
         if labels[i]=='person':
             red_map = np.zeros_like(masks[i]).astype(np.uint8)
-            if True: #try:
+            try:
                 # apply a randon color mask to each object
                 red_map[masks[i] == 1] = 255
                 
@@ -204,8 +204,9 @@ def crop_mask(imager, masks,boxes,labels, sizeim):
                 phlist.append(crop_img)
                 boxx = [x,y,int(width-x), int(height-y)]
                 boxes2.append(boxx)
-            else:#except:
-                print(masks[i].shape)
+            except:
+                no = 0
+                
     return phlist ,np.array(boxes2)
 
 def crop_mask_tf(imager, masks,boxes,labels, sizeim):
