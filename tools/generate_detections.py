@@ -31,11 +31,11 @@ EMB_SIZE = 1024
 body_estimation = Body('model/body_pose_model.pth')
 
 
-class Encoder(nn.Module):
+class Encoder(nn.Module):#beit_base_patch16_224_in22k
     
     def __init__(self):
         super().__init__()
-        self.backbone_beit = timm.create_model('beit_base_patch16_224_in22k', pretrained=True, num_classes=0).to('cuda')
+        self.backbone_beit = timm.create_model('microsoft/beit-base-patch16-224-pt22k-ft22k', pretrained=True, num_classes=0).to('cuda')
         if torch.cuda.is_available():
             self.backbone_beit.cuda()
         self.avgpool1d = nn.AdaptiveAvgPool1d(EMB_SIZE)
@@ -68,7 +68,7 @@ def get_embedding(img):
     return embedding
 
 def get_load2(img):
-    img = Image.fromarray(img[..., ::-1]) 
+    img = Image.fromarray(img)#[..., ::-1]) 
     convert_to_tensor = transforms.Compose([transforms.PILToTensor()])
     input_tensor = convert_to_tensor(img)
     return input_tensor
@@ -360,8 +360,8 @@ def crop_mask_g(imager, masks,boxes,labels, sizeim):
                 height = max(x11)
                 crop_img = res[y:height, x:width]
                 candidate, subset = body_estimation(crop_img)
-                #if len(candidate) <=8:
-                #    continue
+                if len(candidate) <=8:
+                   continue
                 crop_img = get_load2(cv2.resize(crop_img, sizeim))
                 phlist.append(crop_img)
                 boxx = [x,y,int(width-x), int(height-y)]
