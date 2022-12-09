@@ -374,8 +374,8 @@ def crop_mask_g(imager, masks,boxes,labels, sizeim):
                 print(masks[i].shape)
     return phlist ,np.array(boxes2)
 
-
-def create_box_encoder(model_filename, input_name="images",
+#Bert
+def create_box_encoder_bert(model_filename, input_name="images",
                        output_name="features", batch_size=32):
 
     def encoder(image, masks,boxes,labels):
@@ -412,7 +412,7 @@ def create_box_encoder0torch(model_filename, input_name="images",
 
 
 #no faceNet
-def create_box_encode1r(model_filename, input_name="images",
+def create_box_encoder(model_filename, input_name="images",
                        output_name="features", batch_size=32):
 
     def encoder(image, masks,boxes,labels):
