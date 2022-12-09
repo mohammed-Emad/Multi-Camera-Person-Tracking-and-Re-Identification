@@ -168,7 +168,7 @@ def main(yolo):
     max_cosine_distance = 0.2
     nn_budget = None
     nms_max_overlap = 0.4
-    threshold = 0.965 #0.97 # 0.965
+    threshold = 0.969 #0.97 # 0.965
 
     # initialize the model
     model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True, progress=True, 
@@ -204,6 +204,7 @@ def main(yolo):
 
     all_frames = []
     for video in args.videos:
+        all_frames0 = []
         loadvideo = LoadVideo(video)
         video_capture, frame_rate, w, h = loadvideo.get_VideoLabels()
         while True:
@@ -213,16 +214,19 @@ def main(yolo):
             if ret is not True:
                 video_capture.release()
                 break
-            #frame = rescale_frame(frame.copy(), 53)
-            #print(frame.shape)
-            all_frames.append(frame)
+
+            all_frames0.append(frame)
+        all_frames.append(all_frames0)
     print(frame_rate, (w, h))
     frame_nums = len(all_frames)
     tracking_path = out_dir + 'tracking' + '.avi'
     combined_path = out_dir + 'allVideos' + '.avi'
     if is_vis:
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-        out = cv2.VideoWriter(tracking_path, fourcc, frame_rate, (w, h))
+        out = cv2.VideoWriter(out_dir + 'tracking' + '.avi', fourcc, frame_rate, (w, h))
+        out0 = cv2.VideoWriter(out_dir + 'tracking0' + '.avi', fourcc, frame_rate, (w, h))
+        out01 = cv2.VideoWriter(out_dir + 'tracking01' + '.avi', fourcc, frame_rate, (w, h))
+        out02 = cv2.VideoWriter(out_dir + 'tracking02' + '.avi', fourcc, frame_rate, (w, h))
         out2 = cv2.VideoWriter(combined_path, fourcc, frame_rate, (w, h))
         # Combine all videos
         for frame in all_frames:
