@@ -363,7 +363,7 @@ def crop_mask_g(imager, masks,boxes,labels, sizeim):
                 candidate, subset = body_estimation(crop_img)
                 if len(candidate) <=8:
                    continue
-                cv2.imwrite(f"imcrop_{i}",cv2.resize(crop_img, sizeim))
+                cv2.imwrite(f"imcrop_{i}.png",cv2.resize(crop_img, sizeim))
                 crop_img = get_load2(cv2.resize(crop_img, sizeim))
                 phlist.append(crop_img)
                 boxx = [x,y,int(width-x), int(height-y)]
