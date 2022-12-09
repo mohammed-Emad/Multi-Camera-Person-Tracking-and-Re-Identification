@@ -168,7 +168,7 @@ def main(yolo):
     max_cosine_distance = 0.2
     nn_budget = None
     nms_max_overlap = 0.4
-    threshold = 0.969 #0.97 # 0.965
+    threshold = 0.97 # 0.965
 
     # initialize the model
     model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True, progress=True, 
@@ -217,7 +217,7 @@ def main(yolo):
 
             all_frames0.append(frame)
         all_frames.append(all_frames0)
-    all_frames = all_frames[0]
+
     print(frame_rate, (w, h))
     frame_nums = len(all_frames)
     tracking_path = out_dir + 'tracking' + '.avi'
@@ -225,12 +225,12 @@ def main(yolo):
     if is_vis:
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
         out = cv2.VideoWriter(out_dir + 'tracking' + '.avi', fourcc, frame_rate, (w, h))
-        out0 = cv2.VideoWriter(out_dir + 'tracking0' + '.avi', fourcc, frame_rate, (w, h))
+        out00 = cv2.VideoWriter(out_dir + 'tracking00' + '.avi', fourcc, frame_rate, (w, h))
         out01 = cv2.VideoWriter(out_dir + 'tracking01' + '.avi', fourcc, frame_rate, (w, h))
         out02 = cv2.VideoWriter(out_dir + 'tracking02' + '.avi', fourcc, frame_rate, (w, h))
         out2 = cv2.VideoWriter(combined_path, fourcc, frame_rate, (w, h))
         # Combine all videos
-        for frame in all_frames:
+        for frame in all_frames[0]:
             out2.write(frame)
         out2.release()
 
@@ -245,7 +245,8 @@ def main(yolo):
     track_cnt = dict()
     images_by_id = dict()
     ids_per_frame = []
-    for frame in all_frames:
+    for frames00 in range(len(all_frames)):
+      for frame in all_frames[frames00]:
         #print("frame",frame.shape)
         image = Image.fromarray(frame[..., ::-1])  # bgr to rgb
         image0 = transform(image)
@@ -313,14 +314,33 @@ def main(yolo):
 
         # save a frame
         if is_vis:
-            out.write(frame)
+            if frames00 == 0:
+               out.write(frame)
+            if frames00 == 1:
+               out00.write(frame)
+            if frames00 == 2:
+               out01.write(frame)
+            if frames00 == 3:
+               out02.write(frame)
         t2 = time.time()
 
         frame_cnt += 1
         print(frame_cnt, '/', frame_nums)
 
     if is_vis:
-        out.release()
+        if frames00 == 0:
+               out.release()
+               all_frames[0] = []
+        if frames00 == 1:
+               out00.release()
+               all_frames[1] = []
+        if frames00 == 2:
+               out01.release()
+               all_frames[2] = []
+        if frames00 == 3:
+               out02.release()
+               all_frames[3] = []
+
     print('Tracking finished in {} seconds'.format(int(time.time() - t1)))
     print('Tracked video : {}'.format(tracking_path))
     print('Combined video : {}'.format(combined_path))
