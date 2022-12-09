@@ -71,12 +71,12 @@ def get_load2(img):
     img = Image.fromarray(img[..., ::-1]) 
     convert_to_tensor = transforms.Compose([transforms.PILToTensor()])
     input_tensor = convert_to_tensor(img)
-    input_tensor = input_tensor.unsqueeze(0)
+    #input_tensor = input_tensor.unsqueeze(0)
     return input_tensor
 
 def get_embedding2(imglist):
     with torch.no_grad():
-        embedding = model_beit(torch.stack(imglist).cuda()).cpu().data.numpy()
+        embedding = model_beit(torch.stack(imglist)).cpu().data.numpy()
     return embedding
 
 
