@@ -189,7 +189,7 @@ def main(yolo):
     encoder = gdet.create_box_encoder(model_filename, batch_size=1)  # use to get feature
 
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
-    tracker = Tracker(metric, max_age=300)
+    tracker = Tracker(metric, max_age=100)
 
     output_frames = []
     output_rectanger = []
@@ -238,14 +238,15 @@ def main(yolo):
     filename = out_dir + '/tracking.txt'
     open(filename, 'w')
 
-    fps = 0.0
-    frame_cnt = 0
-    t1 = time.time()
+
 
     track_cnt = dict()
     images_by_id = dict()
     ids_per_frame = []
     for frames00 in range(len(all_frames)):
+      fps = 0.0
+      frame_cnt = 0
+      t1 = time.time()
       vidallfm = all_frames[frames00]
       frame_nums = len(vidallfm)
       for frame in all_frames[frames00]:
