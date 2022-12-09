@@ -424,7 +424,7 @@ def main(yolo):
 
 def get_FrameLabels(frame):
     text_scale = max(1, frame.shape[1] / 1600.)
-    text_thickness = 1.5 if text_scale > 1.5 else 1.5
+    text_thickness = 2 if text_scale > 2 else 2
     line_thickness = max(1, int(frame.shape[1] / 500.))
     return text_scale, text_thickness, line_thickness
 
