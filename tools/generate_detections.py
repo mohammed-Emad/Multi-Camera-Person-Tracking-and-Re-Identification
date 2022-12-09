@@ -49,13 +49,13 @@ class Encoder(nn.Module):#beit_base_patch16_224_in22k,  beitv2_large_patch16_224
         
         return embedding
     
-model = Encoder()
-model.eval()
+model_beit = Encoder()
+model_beit.eval()
 
 def get_embeddingreid(img):
     with torch.no_grad():
         #embedding = torch.flatten(model(img)[0]) #.cpu().data.numpy()
-        embedding = model(img)
+        embedding = model_beit(img)
     return embedding
 
 def get_embedding(img):
@@ -64,18 +64,19 @@ def get_embedding(img):
     input_tensor = convert_to_tensor(img)
     input_batch = input_tensor.unsqueeze(0)
     with torch.no_grad():
-        embedding = torch.flatten(model(input_batch)[0]).cpu().data.numpy()
+        embedding = torch.flatten(model_beit(input_batch)[0]).cpu().data.numpy()
     return embedding
 
 def get_load2(img):
     img = Image.fromarray(img[..., ::-1]) 
     convert_to_tensor = transforms.Compose([transforms.PILToTensor()])
     input_tensor = convert_to_tensor(img)
+    input_tensor = input_tensor.unsqueeze(0)
     return input_tensor
 
 def get_embedding2(imglist):
     with torch.no_grad():
-        embedding = model(torch.stack(imglist).cuda()).cpu().data.numpy()
+        embedding = model_beit(torch.stack(imglist).cuda()).cpu().data.numpy()
     return embedding
 
 
