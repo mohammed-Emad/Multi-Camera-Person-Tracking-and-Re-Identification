@@ -165,7 +165,7 @@ def rescale_frame(frame_input, percent=75):
 def main(yolo):
     print(f'Using {yolo} model')
     # Definition of the parameters
-    max_cosine_distance = 0.25
+    max_cosine_distance = 0.5
     nn_budget = None
     nms_max_overlap = 0.4
     threshold = 0.97 # 0.965
