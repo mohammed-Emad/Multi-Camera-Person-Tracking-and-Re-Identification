@@ -36,7 +36,7 @@ class Encoder(nn.Module):#beit_base_patch16_224_in22k,  beitv2_large_patch16_224
     
     def __init__(self):
         super().__init__()
-        self.backbone_beit = timm.create_model('beit_base_patch16_224_in22k', pretrained=True, num_classes=0).to('cuda')
+        self.backbone_beit = timm.create_model('beit_base_patch16_224_in22k', pretrained=True, num_classes=0)#.to('cuda')
         if torch.cuda.is_available():
             self.backbone_beit.cuda()
         self.avgpool1d = nn.AdaptiveAvgPool1d(EMB_SIZE)
