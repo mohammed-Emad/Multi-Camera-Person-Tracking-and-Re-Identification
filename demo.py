@@ -217,6 +217,7 @@ def main(yolo):
 
             all_frames0.append(frame)
         all_frames.append(all_frames0)
+    all_frames = all_frames[0]
     print(frame_rate, (w, h))
     frame_nums = len(all_frames)
     tracking_path = out_dir + 'tracking' + '.avi'
