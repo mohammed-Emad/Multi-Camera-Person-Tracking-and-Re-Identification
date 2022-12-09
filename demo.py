@@ -39,7 +39,6 @@ from deep_sort.detection import Detection as ddet
 from reid import REID
 import copy
 
-#@title mask r-cnn
 import cv2
 import numpy as np
 import random
