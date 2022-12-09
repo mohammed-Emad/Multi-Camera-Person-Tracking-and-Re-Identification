@@ -168,7 +168,7 @@ def main(yolo):
     max_cosine_distance = 0.2
     nn_budget = None
     nms_max_overlap = 0.4
-    threshold = 0.97 # 0.965
+    threshold = 0.965 #0.97 # 0.965
 
     # initialize the model
     model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True, progress=True, 

@@ -52,6 +52,11 @@ class Encoder(nn.Module):
 model = Encoder()
 model.eval()
 
+def get_embeddingreid(img):
+    with torch.no_grad():
+        embedding = torch.flatten(model(input_batch)[0]) #.cpu().data.numpy()
+    return embedding
+
 def get_embedding(img):
     img = Image.fromarray(img[..., ::-1]) 
     convert_to_tensor = transforms.Compose([transforms.PILToTensor()])

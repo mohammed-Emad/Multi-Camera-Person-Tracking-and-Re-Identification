@@ -3,6 +3,7 @@ from PIL import Image
 import torchreid
 import torch
 from torchreid import metrics
+from tools import generate_detections as gdet
 
 
 class REID:
@@ -39,7 +40,8 @@ class REID:
             img = torch.unsqueeze(img, 0)
             if self.use_gpu:
                 img = img.cuda()
-            features = self._extract_features(img)
+            #features = self._extract_features(img)
+            features = gdet.get_embeddingreid(img)
             features = features.data.cpu()  # tensor shape=1x2048
             #print(features.shape)
             #print(features)
