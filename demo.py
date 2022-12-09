@@ -331,7 +331,7 @@ def main(yolo):
     if is_vis:
         if frames00 == 0:
                out.release()
-               all_frames[0] = []
+               #all_frames[0] = []
         if frames00 == 1:
                out00.release()
                all_frames[1] = []
