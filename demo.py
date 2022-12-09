@@ -35,6 +35,7 @@ from deep_sort.detection import Detection
 from deep_sort.tracker import Tracker
 from tools import generate_detections as gdet
 from deep_sort.detection import Detection as ddet
+from tqdm import tqdm
 
 from reid import REID
 import copy
@@ -240,6 +241,7 @@ def main(yolo):
 
 
 
+
     track_cnt = dict()
     images_by_id = dict()
     ids_per_frame = []
@@ -249,7 +251,7 @@ def main(yolo):
       t1 = time.time()
       vidallfm = all_frames[frames00]
       frame_nums = len(vidallfm)
-      for frame in all_frames[frames00]:
+      for frame in tqdm(all_frames[frames00]):
         image = Image.fromarray(frame[..., ::-1])  # bgr to rgb
         image0 = transform(image)
         # add a batch dimension
@@ -327,7 +329,7 @@ def main(yolo):
         t2 = time.time()
 
         frame_cnt += 1
-        print(frame_cnt, '/', frame_nums)
+        #print(frame_cnt, '/', frame_nums)
 
     if is_vis:
         if frames00 == 0:
