@@ -165,7 +165,7 @@ def rescale_frame(frame_input, percent=75):
 def main(yolo):
     print(f'Using {yolo} model')
     # Definition of the parameters
-    max_cosine_distance = 0.5
+    max_cosine_distance = 0.2
     nn_budget = None
     nms_max_overlap = 0.4
     threshold = 0.97 # 0.965
@@ -219,7 +219,7 @@ def main(yolo):
         all_frames.append(all_frames0)
 
     print(frame_rate, (w, h))
-    frame_nums = len(all_frames)
+    #frame_nums = len(all_frames)
     tracking_path = out_dir + 'tracking' + '.avi'
     combined_path = out_dir + 'allVideos' + '.avi'
     if is_vis:
@@ -246,8 +246,9 @@ def main(yolo):
     images_by_id = dict()
     ids_per_frame = []
     for frames00 in range(len(all_frames)):
+      vidallfm = all_frames[frames00]
+      frame_nums = len(vidallfm)
       for frame in all_frames[frames00]:
-        #print("frame",frame.shape)
         image = Image.fromarray(frame[..., ::-1])  # bgr to rgb
         image0 = transform(image)
         # add a batch dimension
