@@ -35,9 +35,9 @@ class Encoder(nn.Module):#beit_base_patch16_224_in22k,  beitv2_large_patch16_224
     
     def __init__(self):
         super().__init__()
-        self.backbone_beit = timm.create_model('beit_base_patch16_224_in22k', pretrained=True, num_classes=0)#.to('cuda')
-        #if torch.cuda.is_available():
-        #    self.backbone_beit.cuda()
+        self.backbone_beit = timm.create_model('beit_base_patch16_224_in22k', pretrained=True, num_classes=0).to('cuda')
+        if torch.cuda.is_available():
+            self.backbone_beit.cuda()
         self.avgpool1d = nn.AdaptiveAvgPool1d(EMB_SIZE)
         
     def forward(self, x):
@@ -64,7 +64,7 @@ def get_embedding(img):
     input_tensor = convert_to_tensor(img)
     input_batch = input_tensor.unsqueeze(0)
     with torch.no_grad():
-        embedding = torch.flatten(model_beit(input_batch)[0]).cpu().data.numpy()
+        embedding = torch.flatten(model_beit(input_batch.cuda())[0]).cpu().data.numpy()
     return embedding
 
 def get_load2(img):
@@ -365,7 +365,8 @@ def crop_mask_g(imager, masks,boxes,labels, sizeim):
                 if len(candidate) <=8:
                    continue
                 cv2.imwrite(f"imcrop_{i}.png",cv2.resize(crop_img, sizeim))
-                crop_img = get_load2(cv2.resize(crop_img, sizeim))
+                #crop_img = get_load2(cv2.resize(crop_img, sizeim))
+                crop_img = get_embedding(cv2.resize(crop_img, sizeim))
                 phlist.append(crop_img)
                 boxx = [x,y,int(width-x), int(height-y)]
                 boxes2.append(boxx)
@@ -380,7 +381,7 @@ def create_box_encoder(model_filename, input_name="images",
     def encoder(image, masks,boxes,labels):
         image_patches,boxes2 = crop_mask_g(image, masks,boxes,labels, (224,224))
         if len(image_patches) > 0:
-           sma = get_embedding2(image_patches)
+           sma = image_patches# get_embedding2(image_patches)
         else:
            sma = []
         return sma, boxes2
