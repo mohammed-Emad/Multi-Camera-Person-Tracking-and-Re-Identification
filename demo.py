@@ -420,6 +420,7 @@ def main(yolo):
         video_capture.release()
 
     # Generate a single video with complete MOT/ReID
+    all_frames = all_frames[0]
     if args.all:
         loadvideo = LoadVideo(combined_path)
         video_capture, frame_rate, w, h = loadvideo.get_VideoLabels()
