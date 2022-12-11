@@ -33,11 +33,10 @@ from deep_sort import preprocessing
 from deep_sort import nn_matching
 from deep_sort.detection import Detection
 from deep_sort.tracker import Tracker
-from tools import generate_detections as gdet
+from tools import generate_detect as gdet
 from deep_sort.detection import Detection as ddet
 from tqdm import tqdm
 
-from reid import REID
 import copy
 
 import cv2
@@ -163,8 +162,7 @@ def rescale_frame(frame_input, percent=75):
     return cv2.resize(frame_input, dim, interpolation=cv2.INTER_AREA)
 
 
-def main(yolo):
-    print(f'Using {yolo} model')
+def main():
     # Definition of the parameters
     max_cosine_distance = 0.2
     nn_budget = None
@@ -186,8 +184,7 @@ def main(yolo):
         transforms.ToTensor()
     ])
     # deep_sort
-    model_filename = 'model_data/models/mars-small128.pb'
-    encoder = gdet.create_box_encoder(model_filename, batch_size=1)  # use to get feature
+    encoder = gdet.create_box_encoder(batch_size=1)  # use to get feature
 
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
     tracker = Tracker(metric, max_age=100)
