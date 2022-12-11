@@ -32,7 +32,7 @@ import operator
 from deep_sort import preprocessing
 from deep_sort import nn_matching
 from deep_sort.detection import Detection
-from deep_sort.tracker import Tracker
+from deep_sort.tracker2 import Tracker
 from tools import generate_detect as gdet
 from tqdm import tqdm
 
