@@ -4,7 +4,6 @@ import numpy as np
 
 def _pdist(a, b):
     """Compute pair-wise squared distance between points in `a` and `b`.
-
     Parameters
     ----------
     a : array_like
@@ -117,7 +116,6 @@ class NearestNeighborDistanceMetric(object):
     samples : Dict[int -> List[ndarray]]
         A dictionary that maps from target identities to the list of samples
         that have been observed so far.
-
     """
 
     def __init__(self, metric, matching_threshold, budget=None):
