@@ -22,37 +22,10 @@ alpha = 1
 beta = 0.6 # transparency for the segmentation map
 gamma = 0 # scalar added to each sum
 #[topleft_x, topleft_y, w, h]
-def crop_mask(imager, masks,boxes,labels, sizeim):
-    phlist = []
-    boxes2 = []
-    for i in range(len(masks)):
-        if labels[i]=='person':
-            red_map = np.zeros_like(masks[i]).astype(np.uint8)
-            try:
-                # apply a randon color mask to each object
-                red_map[masks[i] == 1] = 255
-                
-                res = cv2.bitwise_and(imager,imager, mask= red_map)
-                x00 = (boxes[i][0][0], boxes[i][1][0])
-                x11 = (boxes[i][0][1], boxes[i][1][1])
-                x = min(x00)
-                y = min(x11)
-                width = max(x00)
-                height = max(x11)
-                crop_img = res[y:height, x:width]
-                candidate, subset = body_estimation(crop_img)
-                if len(candidate) <=2:
-                   continue
-                crop_img = draw_bodypose3(crop_img, candidate, subset)
-                crop_img = netproc(cv2.resize(crop_img, sizeim), 0)
-                phlist.append(crop_img)
-                boxx = [x,y,int(width-x), int(height-y)]
-                boxes2.append(boxx)
-            except:
-                no = 0
 
-    return phlist ,np.array(boxes2)
-
+Sift = cv2.SIFT_create()
+def sift_extract_feat(img):
+    kp1, des1 = Sift.detectAndCompute(img, None)
 
 
 #out=np.vstack(phlist)
@@ -75,9 +48,6 @@ def crop_mask_g(imager, masks,boxes,labels, sizeim):
                 height = max(x11)
                 crop_img = res[y:height, x:width]
                 
-                candidate, subset = body_estimation(crop_img)
-                if len(candidate) <=8:
-                   continue
                 cv2.imwrite(f"imcrop_{i}.png",cv2.resize(crop_img, sizeim))
                 #crop_img = get_load2(cv2.resize(crop_img, sizeim))
                 crop_img = get_embedding(cv2.resize(crop_img, sizeim))
