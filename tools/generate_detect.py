@@ -23,10 +23,11 @@ beta = 0.6 # transparency for the segmentation map
 gamma = 0 # scalar added to each sum
 #[topleft_x, topleft_y, w, h]
 
+
 Sift = cv2.SIFT_create()
 def sift_extract_feat(img):
-    kp1, des1 = Sift.detectAndCompute(img, None)
-
+    kp, ds = Sift.detectAndCompute(img, None)
+    return [kp, ds]
 
 #out=np.vstack(phlist)
 def crop_mask_g(imager, masks,boxes,labels, sizeim):
@@ -38,7 +39,6 @@ def crop_mask_g(imager, masks,boxes,labels, sizeim):
             try:
                 # apply a randon color mask to each object
                 red_map[masks[i] == 1] = 255
-                
                 res = cv2.bitwise_and(imager,imager, mask= red_map)
                 x00 = (boxes[i][0][0], boxes[i][1][0])
                 x11 = (boxes[i][0][1], boxes[i][1][1])
@@ -48,9 +48,7 @@ def crop_mask_g(imager, masks,boxes,labels, sizeim):
                 height = max(x11)
                 crop_img = res[y:height, x:width]
                 
-                cv2.imwrite(f"imcrop_{i}.png",cv2.resize(crop_img, sizeim))
-                #crop_img = get_load2(cv2.resize(crop_img, sizeim))
-                crop_img = get_embedding(cv2.resize(crop_img, sizeim))
+                crop_img = sift_extract_feat(cv2.resize(crop_img, sizeim))
                 phlist.append(crop_img)
                 boxx = [x,y,int(width-x), int(height-y)]
                 boxes2.append(boxx)
@@ -60,12 +58,10 @@ def crop_mask_g(imager, masks,boxes,labels, sizeim):
 
 
 #no faceNet
-def create_box_encoder(input_name="images",
-                       output_name="features", batch_size=32):
-
+def create_box_encoder():
     def encoder(image, masks,boxes,labels):
-        image_patches,boxes2 = crop_mask_g(image, masks,boxes,labels, (160,160))
-        return image_patches, boxes2
+        features, boxes2 = crop_mask_g(image, masks,boxes,labels, (160,160))
+        return features, boxes2
     return encoder
 
 

@@ -34,7 +34,6 @@ from deep_sort import nn_matching
 from deep_sort.detection import Detection
 from deep_sort.tracker import Tracker
 from tools import generate_detect as gdet
-from deep_sort.detection import Detection as ddet
 from tqdm import tqdm
 
 import copy
@@ -125,7 +124,6 @@ def draw_segmentation_map(image, masks, boxes, labels):
     return image
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--version', help='Model(yolo_v3 or yolo_v4)', default='yolo_v4')
 parser.add_argument('--videos', nargs='+', help='List of videos', required=True)
 parser.add_argument('-all', help='Combine all videos into one', default=True)
 args = parser.parse_args()  # vars(parser.parse_args())
@@ -184,7 +182,7 @@ def main():
         transforms.ToTensor()
     ])
     # deep_sort
-    encoder = gdet.create_box_encoder(batch_size=1)  # use to get feature
+    encoder = gdet.create_box_encoder()  # use to get feature
 
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
     tracker = Tracker(metric, max_age=100)
@@ -219,7 +217,6 @@ def main():
     print(frame_rate, (w, h))
     #frame_nums = len(all_frames)
     tracking_path = out_dir + 'tracking' + '.avi'
-    combined_path = out_dir + 'allVideos' + '.avi'
     if is_vis:
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
         out = cv2.VideoWriter(out_dir + 'tracking' + '.avi', fourcc, frame_rate, (w, h))
@@ -337,7 +334,6 @@ def main():
 
     print('Tracking finished in {} seconds'.format(int(time.time() - t1)))
     print('Tracked video : {}'.format(tracking_path))
-    print('Combined video : {}'.format(combined_path))
 
 
 def get_FrameLabels(frame):
