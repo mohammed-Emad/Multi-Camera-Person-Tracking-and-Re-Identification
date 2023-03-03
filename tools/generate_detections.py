@@ -430,7 +430,7 @@ def crop_mask_g(imager, masks,boxes,labels, sizeim):
                 crop_img = res[y:height, x:width]
                 
                 candidate, subset = body_estimation(crop_img)
-                if len(candidate) <=5:
+                if len(candidate) <=12:
                    continue
                 #cv2.imwrite(f"imcrop_{i}.png",cv2.resize(crop_img, sizeim))
                 #crop_img = get_load2(cv2.resize(crop_img, sizeim))
