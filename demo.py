@@ -190,7 +190,7 @@ def main(yolo):
     encoder = gdet.create_box_encoder(model_filename, batch_size=1)  # use to get feature
 
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
-    tracker = Tracker(metric, max_age=99009000)
+    tracker = Tracker(metric, max_age=300)
 
     output_frames = []
     output_rectanger = []
